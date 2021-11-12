@@ -1,0 +1,13 @@
+input {
+    pipeline { 
+		address => elasticsearch_output_pipeline
+	}
+}
+output {
+    elasticsearch {
+        hosts => "${ELASTICSEARCH_HOST_PORT}"
+        user => "${ELASTIC_USERNAME}"
+        password => "${ELASTIC_PASSWORD}"
+        index => "logstash-%{index_group}-mule-%{+YYYY.MM.dd}"
+    }
+}

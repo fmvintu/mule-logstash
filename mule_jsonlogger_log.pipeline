@@ -1,0 +1,22 @@
+input { 
+	pipeline {
+		id => "readMuleJsonLoggerLog"
+		address => mule_jsonlogger_log_pipeline
+		codec => json
+	}
+}
+filter {
+	json {
+		source => "logmessage"
+	}
+    mutate {
+        add_field => { "index_group" => "jsonlogger" }
+		remove_field => [ "logmessage" ]
+    }
+}
+output {
+	pipeline {
+		id => "fromMuleJsonLoggerToElasticsearch"
+		send_to => elasticsearch_output_pipeline
+	}
+}

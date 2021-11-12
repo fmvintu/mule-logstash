@@ -1,0 +1,37 @@
+input {
+    sqs {
+        id => "receiveLogMessagesSQS"
+        
+        region => "<region>"
+        queue => "<queue name>"
+        access_key_id => "<access key>"
+        secret_access_key => "<secret key>"
+
+        codec => multiline {
+            pattern => "^%{LOGLEVEL}"
+            negate => true
+            what => "previous"
+        }
+    }
+}
+filter {  
+  grok {
+    match => { "message" => "%{LOGLEVEL:loglevel} * \[(?<apptimestamp>%{YEAR}-%{MONTHNUM2}-%{MONTHDAY} %{HOUR}:%{MINUTE}:%{SECOND}.%{NONNEGINT})\] \[%{GREEDYDATA:thread}\] (?<logger>[A-Za-z0-9$_.]+): %{GREEDYDATA:logmessage}$" }
+  }
+  mutate {
+    remove_field => [ "message" ]
+  }
+}
+output {
+    if "jsonlogger" in [logger] {
+      pipeline {
+          id => "sendToMuleJsonLoggerLog"
+          send_to => mule_jsonlogger_log_pipeline
+      }        
+    } else {
+      pipeline {
+          id => "sendToMuleRawLog"
+          send_to => mule_raw_log_pipeline
+      }
+    }
+}

@@ -1,0 +1,17 @@
+input { 
+	pipeline {
+		id => "readMuleRawLog"
+		address => mule_raw_log_pipeline
+	}
+}
+filter {
+    mutate {
+        add_field => { "index_group" => "raw" }
+    }
+}
+output {
+	pipeline {
+		id => "fromContainerToElastic"
+		send_to => elasticsearch_output_pipeline
+	}
+}
